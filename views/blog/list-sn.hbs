@@ -1,0 +1,194 @@
+
+<style>
+   #itemContainer>li{
+          list-style: none;
+      }
+    #itemContainer>li>div{
+        width: 100%;
+        height: 150px;
+        border: 1px solid;
+    }
+    #itemContainer{
+        margin-top: 50px;
+    }
+    #sayBlog{
+        display: none;
+    }
+    .del{
+        float: right;
+        margin-top: 20px;
+    }
+    .comment>li{
+        list-style: none;
+        width: 100%;
+        height: 55px;
+        border: 1px solid ;
+    }
+    .comment{
+        display: none;
+    }
+    .btn{
+        margin-top: 20px;
+    }
+</style>
+<div class="container" style="margin-top: 100px">
+    {{#each user}}
+    <div class="blog-header">
+        <h1 class="blog-title">{{realname}}的博客之家</h1>
+        <p class="lead blog-description">你可以分享一些你自己的东西</p>
+        <img src="{{picture}}" alt="..." class="img-thumbnail" style="width: 140px;height: 140px">
+        <p>用户名：{{username}}</p>
+        <p>年龄：{{age}}</p>
+        <p>邮箱：{{email}}</p>
+    </div>
+        {{/each}}
+    <div class="row">
+        <div class="col-sm-8 blog-main">
+            <div class="blog-post">
+                <h3><a onclick=showblog()>发布博客</a></h3>
+                {{#each user}}
+                <form action="" id="sayBlog" style="margin-top: 30px">
+                    <input type="text" class="form-control" placeholder="标题" id="title" name="title">
+                    <textarea class="form-control" rows="3" style="resize: none ;margin-top: 20px" name="content" id="content">
+                    </textarea>
+                    <button type="button" class="btn btn-primary" style="margin-top: 20px" onclick=checkBlog('{{_id}}')>发布</button>
+                </form>
+                {{/each}}
+            </div><!-- /.blog-post -->
+            <div class="holder"></div>
+            <ul id="itemContainer">
+                {{#each blog}}
+               <li>
+                   <p style="font-size: 25px">标题：{{title}}</p>
+                   <p style="color: #529bff">发布时间：{{createdAt}}</p>
+                   <div>{{content}}</div>
+                   <span style="color: #529bff;"><i class="fa fa-heart"></i>喜欢{{like}}</span>
+                   <span style="color: #529bff;"><i class="fa fa-bomb"></i>讨厌{{hate}}</span>
+                   <span style="color: #529bff;"><i class="fa fa-file-text-o"></i>评论{{comment}}</span>
+                   <button type="button" style="margin-left: 200px" class=" btn btn-success" onclick=showcontent('{{_id}}') >显示评论</button>
+                   <button  type="button" style="margin-left: 50px" class="btn btn-success" onclick=closecontent('{{_id}}')>关闭评论</button>
+                   <p class="del btn btn-danger" onclick=delBlog('{{_id}}')>删除</p>
+                   <ul id="{{_id}}" class="comment">
+                           {{#each commentText}}
+                               <li>
+                                   <spanp>用户：{{phone}}</spanp>
+                                   <span>：{{comment}}</span>
+                               </li>
+                           {{/each}}
+                   </ul>
+               </li>
+                {{/each}}
+            </ul>
+        </div><!-- /.blog-main -->
+        <div class="col-sm-3 col-sm-offset-1 blog-sidebar">
+            <div class="sidebar-module sidebar-module-inset">
+                <h4>About</h4>
+                <p>Etiam porta <em>sem malesuada magna</em> mollis euismod. Cras mattis consectetur purus sit amet fermentum. Aenean lacinia bibendum nulla sed consectetur.</p>
+            </div>
+            <div class="sidebar-module">
+                <h4>Archives</h4>
+                <ol class="list-unstyled">
+                    <li><a href="#">March 2014</a></li>
+                    <li><a href="#">February 2014</a></li>
+                    <li><a href="#">January 2014</a></li>
+                    <li><a href="#">December 2013</a></li>
+                    <li><a href="#">November 2013</a></li>
+                    <li><a href="#">October 2013</a></li>
+                    <li><a href="#">September 2013</a></li>
+                    <li><a href="#">August 2013</a></li>
+                    <li><a href="#">July 2013</a></li>
+                    <li><a href="#">June 2013</a></li>
+                    <li><a href="#">May 2013</a></li>
+                    <li><a href="#">April 2013</a></li>
+                </ol>
+            </div>
+            <div class="sidebar-module">
+                <h4>Elsewhere</h4>
+                <ol class="list-unstyled">
+                    <li><a href="#">GitHub</a></li>
+                    <li><a href="#">Twitter</a></li>
+                    <li><a href="#">Facebook</a></li>
+                </ol>
+            </div>
+        </div><!-- /.blog-sidebar -->
+
+    </div><!-- /.row -->
+
+</div><!-- /.container -->
+{{#section 'customjs'}}
+<script>
+    function showcontent(id) {
+        $('#'+id).show()
+    }
+    function closecontent(id) {
+        $('#'+id).hide()
+    }
+    $(function(){
+        $("div.holder").jPages({
+            containerID : "itemContainer"
+        });
+    });
+    var bol=true;
+    function showblog() {
+        if(bol){
+         $('#sayBlog').show();
+           bol=false;
+        }else {
+            $('#sayBlog').hide();
+            bol=true;
+        }
+    }
+    function checkBlog(author) {
+        var ret=true;
+        if(!$('#title').val().length>0){
+            alert("输入不能为空")
+            ret=false;
+        }
+        if(!$('#content').val().length>0){
+            alert("输入不能为空")
+            ret=false;
+        }
+
+      var author=author;
+        if(ret){
+            addBlog(author)
+        }
+    }
+    function addBlog(author) {
+        var para=$('#sayBlog').serialize()+'&'+'author='+author;
+        $.ajax({
+            url:'/blog/add',
+            type:'POST',
+            data:para,
+            async:true,
+            success:function (res) {
+                if(res){
+                    alert("sss")
+                    window.location.reload()
+                }
+            }
+
+
+        })
+    }
+    function delBlog(author_id) {
+        var para='_id='+author_id;
+      $.ajax({
+            url:'/blog/del',
+            type:'POST',
+            data:para,
+            async:true,
+            success:function (res) {
+                if(res){
+                    alert("sss")
+                    window.location.reload()
+                }
+            }
+
+
+        })
+    }
+</script>
+{{/section}}
+
+

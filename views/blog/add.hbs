@@ -1,0 +1,31 @@
+<form
+        action="/blog/add"
+        method="POST"
+        id="sign-in-pa" style="margin-top: 200px">
+    <lable>标题</lable>
+    <input type="text" name="title">
+    <textarea class="form-control" rows="3" name="content"></textarea>
+    <button type="button" class="btn btn-success" onclick="checkForm()">发布</button>
+</form>
+{{#section 'customjs'}}
+    <script>
+        function checkForm() {
+            var para=$('#sign-in-pa').serialize();
+            alert(para);
+            $.ajax({
+                url:'/blog/add',
+                type:'POST',
+                async:true,
+                data:para,
+                success:function (res) {
+
+                    if(res.code==1)
+                    {
+                        window.location.href=res.url;
+                    }
+                }
+
+            })
+        }
+    </script>
+{{/section}}

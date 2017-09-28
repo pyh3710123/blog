@@ -1,0 +1,183 @@
+
+<style>
+  #itemContainer>li>span{
+      width: 600px;
+      height: 200px;
+      border: 2px solid #333;
+      display: block;
+  }
+  #itemContainer>li>img{
+      width: 60px;
+      height: 60px;
+      position: absolute;
+      top: -30px;
+      right: 0;
+  }
+  #itemContainer>li>p{
+      font-size: 25px;
+  }
+  #itemContainer>li{
+      list-style: none;
+      width: 600px;
+      position: relative;
+      margin-top: 50px;
+  }
+
+  #itemContainer>li>a{
+      float: right;
+      margin-right: 20px;
+      text-decoration: none;
+  }
+  #itemContainer>li>a:hover{
+      color: #529bff;
+      cursor: pointer;
+  }
+ 
+    .btn{
+        float: left;
+        margin-right: 10px;
+        margin-top: 10px;
+    }
+    .form{
+        display: none;
+    }
+</style>
+
+{{#each blog}}
+
+    {{title}}
+{{/each}}
+<div class="container"style="margin-top: 150px">
+    <div class="blog-header">
+        <h1 class="blog-title">热门博客</h1>
+        <p class="lead blog-description">一些最新博客内容将呈现给你</p>
+    </div>
+<div class="row">
+<div class="col-sm-8 blog-main">
+    <div class="blog-post">
+    </div><!-- /.blog-post -->
+    <div class="holder"></div>
+    <ul id="itemContainer">
+
+    </ul>
+{{#section 'customjs'}}
+<script>
+    $(function(){
+        $("div.holder").jPages({
+            containerID : "itemContainer"
+        });
+    });
+    var  blogs=[];
+        {{#each blog}}
+           var blog={};
+           blog.author_id=('{{author_id}}');
+           blog._id=('{{_id}}');
+           blog.title=('{{title}}');
+           blog.content=('{{content}}');
+           blog.like=('{{like}}');
+           blog.hate=('{{hate}}');
+           blog.comment=('{{comment}}');
+           blog.commentText=('{{commentText}}');
+            blogs.push(blog);
+        {{/each}}
+    var phones=[];
+        {{#each phone}}
+        var phone={};
+            phone.phone='{{session}}';
+            phones.push( phone);
+        {{/each}}
+    var tel=phones[0].phone
+    var  users=[];
+        {{#each user}}
+        var user={};
+        user._id=('{{_id}}');
+        user.picture=('{{picture}}');
+        user.realname=('{{realname}}');
+        users.push(user);
+        {{/each}}
+var tt=blogs.map(function (item,index) {
+  for(var i=0;i<users.length;i++) {
+      if (item.author_id == users[i]._id) {
+          item.picture = users[i].picture;
+      }
+  }
+    return item
+})
+var data=tt;
+for(var i=0;i<data.length;i++){
+$('#itemContainer').append('<li><p>标题：'+data[i].title+'</p><span>'+data[i].content+'</span><img src='+data[i].picture+'>' +
+            '<a onclick="like(\''+data[i]._id+'\',\''+data[i].like+'\',\''+data[i]._id+2+'\')" id=\''+data[i]._id+2+'\'><i class="fa fa-heart"></i>喜欢'+data[i].like+'</a>'  +
+        '<a onclick="hate(\''+data[i]._id+'\',\''+data[i].hate+'\',\''+data[i]._id+3+'\')" id=\''+data[i]._id+3+'\'><i class="fa fa-bomb"></i>讨厌'+data[i].hate+'</a>'  +
+        '<a><i class="fa fa-file-text-o"></i>评论'+data[i].comment+'</a>'  +
+        '<a onclick="detailed(\''+data[i]._id+'\')">详细内容</a>'  +
+        '<button onclick="sayComment(\''+data[i]._id+'\',\''+data[i]._id+1+'\')" type="button" class="btn btn-info">点击评论</button>'  +
+        '<button onclick="closeComment(\''+data[i]._id+'\')" type="button" class="btn btn-info")">关闭评论</button>'  +
+               '<form   class="form" id=\''+data[i]._id+1+'\' method="POST" action="/blog/comment">' +
+               ' <input type="hidden" value=\''+tel+'\' name="phone">'+
+        ' <input type="hidden" value=\''+data[i].comment+'\' name="comment">'+
+        ' <input type="hidden" value=\''+data[i]._id+'\' name="id">'+
+        ' <textarea class="form-control" rows="3" style="resize: none ;margin-top: 20px" name="content" > </textarea>'+
+        '<button type="submit" class="submit btn-info">提交评论</button>'  +
+        '</form>' +
+        '</li>')
+}
+    function sayComment(id){
+      /*  $('#'+id).show()*/+
+       $('#'+id+1).show()
+    }
+    function closeComment(id) {
+        $('#'+id+1).hide()
+       /* $('#'+id+1).hide()*/
+    }
+function like(id,like,id2) {
+    var int=parseInt(like);
+    int++;
+    var sole='#'+id2;
+    $( sole).html('<i class="fa fa-heart"></i>喜欢'+int);
+    var para="_id="+id+"&"+"like="+int;
+    $.ajax({
+        url:'/blog/like',
+        type:'POST',
+        data:para,
+        async:true,
+        success:function (res) {
+            if(res){
+                alert("点赞成功")
+            }
+        }
+    })
+}
+    function hate(id,hate,id2) {
+        var int=parseInt(hate);
+        int++;
+        var sole='#'+id2;
+        $( sole).html('<i class="fa fa-bomb"></i>讨厌'+int);
+        var para="_id="+id+"&"+"hate="+int;
+        $.ajax({
+            url:'/blog/hate',
+            type:'POST',
+            data:para,
+            async:true,
+            success:function (res) {
+                if(res){
+                   alert('讨厌成功')
+                }
+            }
+        })
+    }
+    function detailed(_id) {
+        var para='_id='+_id;
+        $.ajax({
+            url:'/blog/detailed',
+            type:'POST',
+            data:para,
+            async:true,
+            success:function (res) {
+                if(res){
+                    window.location.href=res.url;
+                }
+            }
+        })
+    }
+</script>
+{{/section}}
